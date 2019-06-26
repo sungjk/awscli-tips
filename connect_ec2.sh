@@ -11,10 +11,10 @@ function trim() {
 
 function getEc2Instance() {
   aws ec2 describe-instances \
-    --query "Reservations[].Instances[].[Tags[?Key=='Name'] | [0].Value, PublicIpAddress, KeyName]" \
+    --query "Reservations[].Instances[].[Tags[?Key=='Name'] | [0].Value, PublicIpAddress, KeyName, State.Name]" \
     --output text | \
-    awk -v OFS='\t' '{print $3, $2, $1}' | \
-    sort -k3
+    awk -v OFS='\t' '{print $3, $2, $4, $1}' | \
+    sort -k4
 }
 
 instance=$(getEc2Instance | fzf | head -1)
@@ -41,5 +41,5 @@ else
   fi
 
   echo "Connecting to $instanceName with $keyFile..."
-  sudo ssh -i "$keyFile" ubuntu@$publicIpAddress
+  ssh -i "$keyFile" ubuntu@$publicIpAddress
 fi
