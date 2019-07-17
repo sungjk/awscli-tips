@@ -11,7 +11,7 @@ function trim() {
 
 function getEc2Instance() {
   aws ec2 describe-instances \
-    --query "Reservations[].Instances[].[Tags[?Key=='Name'] | [0].Value, PublicIpAddress, KeyName, State.Name]" \
+    --query "Reservations[].Instances[].[Tags[?Key=='Name'] | [0].Value, PrivateIpAddress, KeyName, State.Name]" \
     --output text | \
     awk -v OFS='\t' '{print $3, $2, $4, $1}' | \
     sort -k4
@@ -25,7 +25,7 @@ if [ ! -n "$instance" ]; then
 else
   instanceName=$(awk 'BEGIN {OFS="\t";} {print $3}' <<< "$instance" | trim)
   keyName=$(awk 'BEGIN {OFS="\t";} {print $1}' <<< "$instance" | trim)
-  publicIpAddress=$(awk 'BEGIN {OFS="\t";} {print $2}' <<< "$instance" | trim)
+  privateIpAddress=$(awk 'BEGIN {OFS="\t";} {print $2}' <<< "$instance" | trim)
 
   if [ ! -f "$keyName.pem" ]; then
     while true; do
@@ -41,5 +41,5 @@ else
   fi
 
   echo "Connecting to $instanceName with $keyFile..."
-  ssh -i "$keyFile" ubuntu@$publicIpAddress
+  ssh -i "$keyFile" ubuntu@$privateIpAddress
 fi
